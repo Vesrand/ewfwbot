@@ -1,0 +1,7 @@
+{
+    "drake_rate": {
+        "description": "Адрес ячейки с курсом дрейка",
+        "address": "R2",
+        "sheetId": "0"
+    }
+}
