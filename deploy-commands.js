@@ -2,7 +2,7 @@ const { REST, Routes } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 let configPath = "";
-if (process.argv[2] && process.argv[2] == "dev"){
+if (process.argv.length > 2 && process.argv[process.argv.length - 1] == "dev"){
 	configPath = './dev_config.json';
 }else{
 	configPath = './config.json';

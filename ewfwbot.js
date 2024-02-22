@@ -11,10 +11,11 @@ const config = require(configPath);
 
 const bot = new Discord.Client({ intents: [
     Discord.GatewayIntentBits.Guilds,
-    Discord.GatewayIntentBits.GuildMessages,
-    Discord.GatewayIntentBits.MessageContent,
-    Discord.GatewayIntentBits.GuildMembers
+    // Discord.GatewayIntentBits.GuildMessages,
+    // Discord.GatewayIntentBits.MessageContent,
+    // Discord.GatewayIntentBits.GuildMembers
 ]});
+let lastCommandName = "";
 
 // Сбор команд из файлов
 bot.commands = new Discord.Collection();
@@ -47,7 +48,15 @@ bot.on(Discord.Events.InteractionCreate, async interaction => {
     console.log(`команда получена ${interaction.commandName} от ${interaction.user.username}`);
     //проверки
     if (!interaction.isChatInputCommand()) return; //обрабатываем только слеш-команды на данный момент
-	const command = interaction.client.commands.get(interaction.commandName);
+
+	let command = interaction.client.commands.get(interaction.commandName);
+	if (interaction.commandName == "undo"){
+		if(lastCommandName == ""){
+			interaction.reply("Отсутствует запись о последней команде");
+			return;
+		}
+		command = interaction.client.commands.get(lastCommandName);
+	}
     if (!command) {
 		console.error(`Не найдено подходящей команды для ${interaction.commandName}.`);
 		return;
@@ -55,20 +64,26 @@ bot.on(Discord.Events.InteractionCreate, async interaction => {
 
     //выполнение
 	try {
-		await command.execute(interaction);
+		if (interaction.commandName == "undo"){
+			if (command.undo != undefined){
+				await command.undo(interaction);
+			}else{
+				interaction.reply(`Не определен метод undo для команды ${interaction.commandName}`);
+			}
+			lastCommandName = ""; // после undo в любом случае очищаем историю
+		}else{
+			await command.execute(interaction);
+			if (command.undo != undefined){
+				lastCommandName = interaction.commandName; // если есть режим undo - сохраняем историю
+			}else{
+				lastCommandName = ""; // если команда не имеет режима undo очищаем историю во избежание непредсказуемых отмен
+			}
+		}
 	} catch (error) {
 		console.error(error);
-		if (interaction.replied || interaction.deferred) {
-			await interaction.followUp({ content: 'Произошла ошибка при выполнении команды', ephemeral: true });
-		} else {
-			await interaction.reply({ content: 'Произошла ошибка при выполнении команды', ephemeral: true });
-		}
 	}
 });
 
-// bot.on(Discord.Events.MessageCreate, (msg) => { // Реагирование на сообщения
-//     console.log("команда получена" + msg.content);
-// });
   
 // 3. логин в дискорде
 bot.login(config.token);
