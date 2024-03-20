@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const settingsHandler = require('../../settings_handler.js'); 
+const cnst = require('../../constants.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -13,16 +14,18 @@ module.exports = {
 		}
 
 		let outputString = "";
-		if (settings["rp_master"] != undefined && Array.isArray(settings["rp_master"]) == true){
-			outputString = `РП-мастер: ${settings["rp_master"].join(", ")}`;
+		if (settings[cnst.ROLES.rp_master.VALUE] != undefined && Array.isArray(settings[cnst.ROLES.rp_master.VALUE]) == true){
+			outputString = `${cnst.ROLES.rp_master.NAME}: ${settings[cnst.ROLES.rp_master.VALUE].join(", ")}`;
 		}
-		if (settings["arbitrator"] != undefined && Array.isArray(settings["arbitrator"]) == true){
-			outputString += `\nАрбитр: ${settings["arbitrator"].join(", ")}`;
+		if (settings[cnst.ROLES.arbitrator.VALUE] != undefined && Array.isArray(settings[cnst.ROLES.arbitrator.VALUE]) == true){
+			outputString += `\n${cnst.ROLES.arbitrator.NAME}: ${settings[cnst.ROLES.arbitrator.VALUE].join(", ")}`;
 		}
-		if (settings["frac_head"] != undefined){
+		if (settings[cnst.ROLES.frac_head.VALUE] != undefined){
 			outputString += `\nГлавы фракций:`;
-			for (let head in settings["frac_head"]){
-				outputString += `\n${head}: ${settings["frac_head"][head]}`;
+			for (let head in settings[cnst.ROLES.frac_head.VALUE]){
+				if (settings[cnst.ROLES.frac_head.VALUE][head] != ""){
+					outputString += `\n${head}: ${settings[cnst.ROLES.frac_head.VALUE][head]}`;
+				}
 			}
 		}
 

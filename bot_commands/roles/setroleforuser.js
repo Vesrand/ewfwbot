@@ -8,17 +8,9 @@ if (process.argv[2] && process.argv[2] == "dev"){
 	configPath = '../../config.json';
 }
 const config = require(configPath);
+const cnst = require('../../constants.js');
 
-let oldValue = {
-	user: "",
-	role: "",
-	fraction: ""
-}
-const roleNames = {
-	rp_master: "РП-мастер",
-	arbitrator: "Арбитр",
-	frac_head: "Глава Фракции",
-}
+let oldValue = "";
 
 
 module.exports = {
@@ -36,27 +28,27 @@ module.exports = {
 				.setDescription('Роль для бота')
 				.setRequired(true)
 				.addChoices(
-					{ name: 'РП-мастер', value: 'rp_master' },
-					{ name: 'Арбитр', value: 'arbitrator' },
-					{ name: 'Глава Фракции', value: 'frac_head' },
+					{ name: cnst.ROLES.rp_master.NAME, value: cnst.ROLES.rp_master.VALUE },
+					{ name: cnst.ROLES.arbitrator.NAME, value: cnst.ROLES.arbitrator.VALUE },
+					{ name: cnst.ROLES.frac_head.NAME, value: cnst.ROLES.frac_head.VALUE }
 				))
 		.addStringOption(option =>
 			option
 				.setName('fraction')
 				.setDescription('Фракция (для роли главы фракции)')
 				.addChoices(
-					{ name: 'Телванни', value: 'telvanni' },
-					{ name: 'Редоран', value: 'redoran' },
-					{ name: 'Хлаалу', value: 'hlaalu' },
-					{ name: 'Храм', value: 'temple' },
-					{ name: 'Шестой Дом', value: 'sixth' },
-					{ name: 'Империя', value: 'imperial' },
-					{ name: 'Культ Червя', value: 'worm' },
-					{ name: 'Гильдия Магов', value: 'mages' },
-					{ name: 'Гильдия Бойцов', value: 'fighters' },
-					{ name: 'Гильдия Воров', value: 'thiefs' },
-					{ name: 'Мораг Тонг', value: 'morag' },
-					{ name: 'Двор Родерики', value: 'roderika' },
+					{ name: cnst.FRACTIONS.telvanni.NAME, value: cnst.FRACTIONS.telvanni.VALUE },
+					{ name: cnst.FRACTIONS.redoran.NAME, value: cnst.FRACTIONS.redoran.VALUE },
+					{ name: cnst.FRACTIONS.hlaalu.NAME, value: cnst.FRACTIONS.hlaalu.VALUE },
+					{ name: cnst.FRACTIONS.temple.NAME, value: cnst.FRACTIONS.temple.VALUE },
+					{ name: cnst.FRACTIONS.sixth.NAME, value: cnst.FRACTIONS.sixth.VALUE },
+					{ name: cnst.FRACTIONS.imperial.NAME, value: cnst.FRACTIONS.imperial.VALUE },
+					{ name: cnst.FRACTIONS.worm.NAME, value: cnst.FRACTIONS.worm.VALUE },
+					{ name: cnst.FRACTIONS.mages.NAME, value: cnst.FRACTIONS.mages.VALUE },
+					{ name: cnst.FRACTIONS.fighters.NAME, value: cnst.FRACTIONS.fighters.VALUE },
+					{ name: cnst.FRACTIONS.thiefs.NAME, value: cnst.FRACTIONS.thiefs.VALUE },
+					{ name: cnst.FRACTIONS.morag.NAME, value: cnst.FRACTIONS.morag.VALUE },
+					{ name: cnst.FRACTIONS.roderika.NAME, value: cnst.FRACTIONS.roderika.VALUE }
 				)),
 	async execute(interaction) {
 		//чтение входных данных
@@ -71,12 +63,10 @@ module.exports = {
 			return;
 		}
 		let fraction = interaction.options.getString('fraction');
-		oldValue.user = targetUser.username;
-		oldValue.role = role;
-		oldValue.fraction = fraction ? fraction : "";
 		
 		// чтение настроек
 		let settings = settingsHandler.getSettingsJson();
+		oldValue = JSON.stringify(settings);
 		if (settings == undefined) {
 			await interaction.reply({ content: `Ошибка чтения дискорд-настроек`, ephemeral: true });
 			return;
@@ -109,58 +99,23 @@ module.exports = {
 		// запись настроек
 		let err = settingsHandler.setSettingsJson(settings);
 		if (err){
+			console.log(`ОШИБКА: undo для метода setroleforuser, ошибка записи натроек: /n${err}`);
 			await interaction.reply({ content: `Ошибка записи дискорд-настроек`, ephemeral: true });
 			return;
 		}
 
 		// вывод результата
-		console.log(`Для пользователя ${targetUser.username} установлена роль бота: ${roleNames[role]}  ${oldValue.fraction}`);
-		await interaction.reply(`Для пользователя ${targetUser.username} установлена роль бота: ${roleNames[role]}  ${oldValue.fraction}`);
+		console.log(`Для пользователя ${targetUser.username} установлена роль бота: ${cnst.ROLES[role].NAME}  ${oldValue.setFraction}`);
+		await interaction.reply(`Для пользователя ${targetUser.username} установлена роль бота: ${cnst.ROLES[role].NAME}  ${oldValue.setFraction}`);
 	},
 	async undo(interaction){
-		if (oldValue.user == undefined || oldValue.user == "" || oldValue.role == undefined || oldValue.role == ""){
-			await interaction.reply("Отмена команды setroleforuser. Ошибка: Значение до изменения не было сохранено");
-		}else{
-
-			// чтение настроек
-			let settings = settingsHandler.getSettingsJson();
-			if (settings == undefined) {
-				await interaction.reply({ content: `Ошибка чтения дискорд-настроек`, ephemeral: true });
-				return;
-			}
-			if (settings[oldValue.role] == undefined) {
-				await interaction.reply({ content: `Ошибка: в настройках ролей не найдено записи для указанной роли`, ephemeral: true });
-				return;
-			}
-			
-			// удаление указанного пользователя из роли
-			let deletedUser = undefined; // по этой переменной поймем, удалось ли удаление
-			if (oldValue.role == "frac_head"){
-				for (let head in settings["frac_head"]){
-					if (settings["frac_head"][head] == oldValue.user){
-						deletedUser = settings["frac_head"][head];
-						settings["frac_head"][head] = "";
-					}
-				}
+		if (oldValue != ""){
+			let err = settingsHandler.setSettingsJson(JSON.parse(oldValue));
+			if (err){
+				console.log(`ОШИБКА: undo для метода setroleforuser, ошибка записи натроек: /n${err}`);
+				await interaction.reply({ content: `Ошибка записи дискорд-настроек`, ephemeral: true });
 			}else{
-				for (let i=0; i < settings[oldValue.role].length; i++){
-					if (settings[oldValue.role][i] == oldValue.user){
-						deletedUser = settings[oldValue.role].splice(i,1);
-					}
-				}
-			}
-
-			// сохранение настроек и вывод результата
-			if (deletedUser && deletedUser == oldValue.user){
-				let err = settingsHandler.setSettingsJson(settings);
-				if (err){
-					await interaction.reply({ content: `Ошибка записи дискорд-настроек`, ephemeral: true });
-					return;
-				}
-				console.log(`Для пользователя ${oldValue.user} удалена роль бота: ${oldValue.role} ${oldValue.fraction}`);
-				await interaction.reply(`Для пользователя ${oldValue.user} удалена роль бота: ${oldValue.role} ${oldValue.fraction}`);
-			}else{
-				await interaction.reply({ content: `Ошибка: для роли ${oldValue.role} не найдена запись пользователя ${oldValue.user}`, ephemeral: true });
+				await interaction.reply(`Последнее изменение настройки ролей было отменено`);
 			}
 		}
 	}
