@@ -14,21 +14,35 @@ module.exports = {
 		}
 
 		let outputString = "";
-		if (settings[cnst.ROLES.rp_master.VALUE] != undefined && Array.isArray(settings[cnst.ROLES.rp_master.VALUE]) == true){
-			outputString = `${cnst.ROLES.rp_master.NAME}: ${settings[cnst.ROLES.rp_master.VALUE].join(", ")}`;
+		for (let role in settings){
+			if (role != cnst.ROLES.frac_head.VALUE){
+				outputString += `__**${cnst.ROLES[role].NAME}**__ ${getUsersRolesString(settings[role])}\n`;
+			}
 		}
-		if (settings[cnst.ROLES.arbitrator.VALUE] != undefined && Array.isArray(settings[cnst.ROLES.arbitrator.VALUE]) == true){
-			outputString += `\n${cnst.ROLES.arbitrator.NAME}: ${settings[cnst.ROLES.arbitrator.VALUE].join(", ")}`;
-		}
-		if (settings[cnst.ROLES.frac_head.VALUE] != undefined){
-			outputString += `\nГлавы фракций:`;
-			for (let head in settings[cnst.ROLES.frac_head.VALUE]){
-				if (settings[cnst.ROLES.frac_head.VALUE][head] != ""){
-					outputString += `\n${head}: ${settings[cnst.ROLES.frac_head.VALUE][head]}`;
-				}
+		if (settings[cnst.ROLES.frac_head.VALUE]){
+			outputString += `__**${cnst.ROLES.frac_head.NAME}**__\n`;
+			for (let fracHead in settings[cnst.ROLES.frac_head.VALUE]){
+				outputString += `- __**${cnst.FRACTIONS[fracHead].NAME}**__ ${getUsersRolesString(settings.frac_head[fracHead])}\n`;
 			}
 		}
 
-		await interaction.reply(outputString);
+		if (outputString != ""){
+			await interaction.reply(outputString);
+		}else{			
+			await interaction.reply("На данный момент ни одной роли не задано");
+		}
 	}
 };
+
+function getUsersRolesString(inRole){
+	let outString = "";
+
+	if (inRole.dsUsers && Array.isArray(inRole.dsUsers)){
+		outString += ` *Дискорд-пользователи:* ${inRole.dsUsers.join(", ")}`;
+	}
+	if (inRole.dsRoles && Array.isArray(inRole.dsRoles)){
+		outString += ` *Дискорд-роли:* ${inRole.dsRoles.join(", ")}`;
+	}
+
+	return outString;
+}

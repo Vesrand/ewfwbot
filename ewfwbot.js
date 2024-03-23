@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
+const settingsHandler = require('./settings_handler.js'); 
 if (process.argv[2] && process.argv[2] == "dev"){
 	configPath = './dev_config.json';
 }else{
@@ -62,25 +63,45 @@ bot.on(Discord.Events.InteractionCreate, async interaction => {
 		return;
 	}
 
-    //выполнение
-	try {
-		if (interaction.commandName == "undo"){
-			if (command.undo != undefined){
-				await command.undo(interaction);
-			}else{
-				interaction.reply(`Не определен метод undo для команды ${interaction.commandName}`);
-			}
-			lastCommandName = ""; // после undo в любом случае очищаем историю
+	//проверка полномочий
+	let userHasPermission = false;
+	if (interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)){
+		//администраторы имеют полный доступ
+		userHasPermission = true;
+	}else{		
+		const permissions = require('./permissions.json');
+		let roleArr = [];
+		if (interaction.commandName != "undo"){
+			roleArr = permissions[interaction.commandName];
 		}else{
-			await command.execute(interaction);
-			if (command.undo != undefined){
-				lastCommandName = interaction.commandName; // если есть режим undo - сохраняем историю
-			}else{
-				lastCommandName = ""; // если команда не имеет режима undo очищаем историю во избежание непредсказуемых отмен
-			}
+			roleArr = permissions[lastCommandName];
 		}
-	} catch (error) {
-		console.error(error);
+		userHasPermission = settingsHandler.checkCommandHasPermission(interaction, roleArr);
+	}
+
+    //выполнение
+	if (userHasPermission == true){
+		try {
+			if (interaction.commandName == "undo"){
+				if (command.undo != undefined){
+					await command.undo(interaction);
+				}else{
+					interaction.reply(`Не определен метод undo для команды ${interaction.commandName}`);
+				}
+				lastCommandName = ""; // после undo в любом случае очищаем историю
+			}else{
+				await command.execute(interaction);
+				if (command.undo != undefined){
+					lastCommandName = interaction.commandName; // если есть режим undo - сохраняем историю
+				}else{
+					lastCommandName = ""; // если команда не имеет режима undo очищаем историю во избежание непредсказуемых отмен
+				}
+			}
+		} catch (error) {
+			console.error(error);
+		}
+	}else{
+		interaction.reply({ content: `У вас нет прав на выполнение команды ${interaction.commandName}`, ephemeral: true });
 	}
 });
 

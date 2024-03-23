@@ -71,26 +71,43 @@ module.exports = {
 			await interaction.reply({ content: `Ошибка чтения дискорд-настроек`, ephemeral: true });
 			return;
 		}
+
 		// установка ролей
 		if (role == "frac_head"){
 			if (fraction != undefined && fraction != ""){
 				if (settings.frac_head == undefined){
 					settings.frac_head = {};
 				}
-				settings.frac_head[fraction] = targetUser.username;
+				if (settings.frac_head[fraction] == undefined){
+					settings.frac_head[fraction] = {};
+				}
+				if (settings.frac_head[fraction].dsUsers == undefined){
+					settings.frac_head[fraction].dsUsers = [targetUser.username];
+				}else{
+					let foundUser = settings.frac_head[fraction].dsUsers.find(item => item == targetUser.username);
+					if (!foundUser){
+						settings.frac_head[fraction].dsUsers.push(targetUser.username);
+					}else{
+						await interaction.reply(`Отмена операции: пользователю ${targetUser.username} уже назначена роль ${cnst.ROLES[role].NAME}`);
+						return;
+					}
+				}
 			}else{
 				await interaction.reply({ content: `Ошибка: для роли главы фракции необходимо указать фракцию`, ephemeral: true });
 				return;
 			}
 		}else{
 			if (settings[role] == undefined){
-				settings[role] = [targetUser.username];
+				settings[role] = {};
+			}
+			if (settings[role].dsUsers == undefined){
+				settings[role].dsUsers = [targetUser.username];
 			}else{
-				let foundUser = settings[role].find(item => item == targetUser.username);
+				let foundUser = settings[role].dsUsers.find(item => item == targetUser.username);
 				if (!foundUser){
-					settings[role].push(targetUser.username);
+					settings[role].dsUsers.push(targetUser.username);
 				}else{
-					await interaction.reply(`Отмена операции: пользователю ${targetUser.username} уже назначена роль ${role}`);
+					await interaction.reply(`Отмена операции: пользователю ${targetUser.username} уже назначена роль ${cnst.ROLES[role].NAME}`);
 					return;
 				}
 			}
@@ -105,8 +122,8 @@ module.exports = {
 		}
 
 		// вывод результата
-		console.log(`Для пользователя ${targetUser.username} установлена роль бота: ${cnst.ROLES[role].NAME}  ${oldValue.setFraction}`);
-		await interaction.reply(`Для пользователя ${targetUser.username} установлена роль бота: ${cnst.ROLES[role].NAME}  ${oldValue.setFraction}`);
+		console.log(`Для пользователя ${targetUser.username} установлена роль бота: ${cnst.ROLES[role].NAME}  ${fraction ? cnst.FRACTIONS[fraction].NAME : ""}`);
+		await interaction.reply(`Для пользователя ${targetUser.username} установлена роль бота: ${cnst.ROLES[role].NAME}  ${fraction ? cnst.FRACTIONS[fraction].NAME : ""}`);
 	},
 	async undo(interaction){
 		if (oldValue != ""){

@@ -1,0 +1,9 @@
+{
+    "getroles":["rp_master"],
+    "setroleforuser": ["rp_master"],
+    "removerolefromuser":["rp_master"],
+    "setroleforrole":["rp_master"],
+    "removerolefromrole":["rp_master"],
+    "setdrakerate":["rp_master", "arbitrator"],
+    "attack":["frac_head"]
+}
