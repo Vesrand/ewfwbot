@@ -7,8 +7,8 @@ let oldValue = "";
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('setroleforuser')
-		.setDescription('Привязать дискорд-пользователя к роли для бота')
+		.setName('removerolefromuser')
+		.setDescription('Отвязать дискорд-пользователя от роли для бота')
 		.addUserOption(option =>
 			option
 				.setName('user')
@@ -68,17 +68,20 @@ module.exports = {
 		if (role == "frac_head"){
 			if (fraction != undefined && fraction != ""){
 				if (settings.frac_head == undefined){
-					settings.frac_head = {};
+                    await interaction.reply({ content: `Ошибка: отсутствуют настройки для роли ${cnst.ROLES.frac_head.NAME}`, ephemeral: true });
+                    return;
 				}
 				if (settings.frac_head[fraction] == undefined){
-					settings.frac_head[fraction] = {};
+                    await interaction.reply({ content: `Ошибка: отсутствуют настройки для фракции ${cnst.FRACTIONS[fraction].NAME}`, ephemeral: true });
+                    return;
 				}
 				if (settings.frac_head[fraction].dsUsers == undefined){
-					settings.frac_head[fraction].dsUsers = [targetUser.username];
+                    await interaction.reply({ content: `Ошибка: для фракции ${cnst.FRACTIONS[fraction].NAME} не заданы никакие конкретные пользователи`, ephemeral: true });
+                    return;
 				}else{
 					let foundUser = settings.frac_head[fraction].dsUsers.find(item => item == targetUser.username);
-					if (!foundUser){
-						settings.frac_head[fraction].dsUsers.push(targetUser.username);
+					if (foundUser){
+                        settings.frac_head[fraction].dsUsers = settings.frac_head[fraction].dsUsers.filter(username => username != targetUser.username);
 					}else{
 						await interaction.reply(`Отмена операции: пользователю ${targetUser.username} уже назначена роль ${cnst.ROLES[role].NAME}`);
 						return;
@@ -91,16 +94,18 @@ module.exports = {
 		}else{
 			fraction = undefined; // обнуляем фракцию, чтобы введенный по ошибке параметр фракции не мешался в ответном сообщении
 			if (settings[role] == undefined){
-				settings[role] = {};
+			    await interaction.reply({ content: `Ошибка: отсутствуют настройки для роли ${cnst.ROLES[role].NAME}`, ephemeral: true });
+                return;
 			}
 			if (settings[role].dsUsers == undefined){
-				settings[role].dsUsers = [targetUser.username];
+			    await interaction.reply({ content: `Ошибка: для роли ${cnst.ROLES[role].NAME} не заданы никакие конкретные пользователи`, ephemeral: true });
+                return;
 			}else{
 				let foundUser = settings[role].dsUsers.find(item => item == targetUser.username);
-				if (!foundUser){
-					settings[role].dsUsers.push(targetUser.username);
+				if (foundUser){
+					settings[role].dsUsers = settings[role].dsUsers.filter(username => username != targetUser.username);
 				}else{
-					await interaction.reply(`Отмена операции: пользователю ${targetUser.username} уже назначена роль ${cnst.ROLES[role].NAME}`);
+					await interaction.reply(`Отмена операции: пользователю ${targetUser.username} не была назначена роль ${cnst.ROLES[role].NAME}`);
 					return;
 				}
 			}
@@ -109,20 +114,20 @@ module.exports = {
 		// запись настроек
 		let err = settingsHandler.setSettingsJson(settings);
 		if (err){
-			console.log(`ОШИБКА: метод setroleforuser, ошибка записи натроек: /n${err}`);
+			console.log(`ОШИБКА: метод removerolefromuser, ошибка записи натроек: /n${err}`);
 			await interaction.reply({ content: `Ошибка записи дискорд-настроек`, ephemeral: true });
 			return;
 		}
 
 		// вывод результата
-		console.log(`Для пользователя ${targetUser.username} установлена роль бота: ${cnst.ROLES[role].NAME}  ${fraction ? cnst.FRACTIONS[fraction].NAME : ""}`);
-		await interaction.reply(`Для пользователя ${targetUser.username} установлена роль бота: ${cnst.ROLES[role].NAME}  ${fraction ? cnst.FRACTIONS[fraction].NAME : ""}`);
+		console.log(`Для пользователя ${targetUser.username} удалена роль бота: ${cnst.ROLES[role].NAME}  ${fraction ? cnst.FRACTIONS[fraction].NAME : ""}`);
+		await interaction.reply(`Для пользователя ${targetUser.username} удалена роль бота: ${cnst.ROLES[role].NAME}  ${fraction ? cnst.FRACTIONS[fraction].NAME : ""}`);
 	},
 	async undo(interaction){
 		if (oldValue != ""){
 			let err = settingsHandler.setSettingsJson(JSON.parse(oldValue));
 			if (err){
-				console.log(`ОШИБКА: undo для метода setroleforuser, ошибка записи натроек: /n${err}`);
+				console.log(`ОШИБКА: undo для метода removerolefromuser, ошибка записи натроек: /n${err}`);
 				await interaction.reply({ content: `Ошибка записи дискорд-настроек`, ephemeral: true });
 			}else{
 				await interaction.reply(`Последнее изменение настройки ролей было отменено`);
