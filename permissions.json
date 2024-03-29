@@ -1,4 +1,5 @@
 {
+    "setchat":["rp_master"],
     "getroles":["rp_master"],
     "setroleforuser": ["rp_master"],
     "removerolefromuser":["rp_master"],

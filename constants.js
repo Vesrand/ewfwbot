@@ -17,5 +17,10 @@ module.exports = Object.freeze({
 		thiefs: { NAME: 'Гильдия Воров', VALUE: 'thiefs' },
 		morag: { NAME: 'Мораг Тонг', VALUE: 'morag' },
 		roderika: { NAME: 'Двор Родерики', VALUE: 'roderika' }
-    }
+    },
+	CHATS: {
+		chronicles: { NAME: 'Летопись', VALUE: 'chronicles' },
+		frac_chat: { NAME: 'Чат Фракции', VALUE: 'frac_chat' },
+		chats_settings: { NAME: 'Настройки чатов', VALUE: 'chats_settings' }
+	}
 });

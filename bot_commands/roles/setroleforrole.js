@@ -65,7 +65,7 @@ module.exports = {
 		}
 
 		// установка ролей
-		if (botrole == "frac_head"){
+		if (botrole == cnst.ROLES.frac_head.VALUE){ // для frac_head
 			if (fraction != undefined && fraction != ""){
 				if (settings.frac_head == undefined){
 					settings.frac_head = {};
@@ -88,7 +88,7 @@ module.exports = {
 				await interaction.reply({ content: `Ошибка: для роли главы фракции необходимо указать фракцию`, ephemeral: true });
 				return;
 			}
-		}else{
+		}else{ // для остальных
 			fraction = undefined; // обнуляем фракцию, чтобы введенный по ошибке параметр фракции не мешался в ответном сообщении
 			if (settings[botrole] == undefined){
 				settings[botrole] = {};
