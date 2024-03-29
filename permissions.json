@@ -1,10 +1,11 @@
 {
     "setchat":["rp_master"],
-    "getroles":["rp_master"],
+    "getroles":["rp_master", "arbitrator"],
     "setroleforuser": ["rp_master"],
     "removerolefromuser":["rp_master"],
     "setroleforrole":["rp_master"],
     "removerolefromrole":["rp_master"],
+    "clearrole":["rp_master"],
     "setdrakerate":["rp_master", "arbitrator"],
     "attack":["frac_head"]
 }

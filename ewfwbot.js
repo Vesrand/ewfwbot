@@ -93,6 +93,8 @@ bot.on(Discord.Events.InteractionCreate, async interaction => {
 				await command.execute(interaction);
 				if (command.undo != undefined){
 					lastCommandName = interaction.commandName; // если есть режим undo - сохраняем историю
+				}else if (interaction.commandName == 'getroles'){
+					// ничего не делаем, команда getroles не влияет на undo
 				}else{
 					lastCommandName = ""; // если команда не имеет режима undo очищаем историю во избежание непредсказуемых отмен
 				}
